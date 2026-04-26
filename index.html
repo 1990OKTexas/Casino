@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Long Branch Saloon</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Georgia, serif;
+  background: radial-gradient(circle at center, rgba(255,235,190,.18), rgba(0,0,0,.6) 70%),
+  linear-gradient(90deg,#6b5d4b,#2f2a24,#8a7356,#211b17,#b5a081,#2a2420);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #f6deb0;
+}
+
+.game {
+  width: 95%;
+  max-width: 420px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(#5a3824, #2b170e);
+  border: 5px solid #1b0d08;
+  box-shadow: 0 20px 50px rgba(0,0,0,.7);
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 10px;
+  font-size: 2.2rem;
+  color: #ffe79a;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stat {
+  padding: 10px;
+  background: #6b3e25;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.machine {
+  padding: 10px;
+  background: #1a0d07;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.slot-screen {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  height: 300px;
+}
+
+.reel {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+  height: 300px;
+  padding: 6px;
+  background: #2d1b10;
+  border-radius: 8px;
+}
+
+.symbol {
+  width: 100%;
+  height: 90px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #120907;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.message {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.bottom-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+
+button {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #a46c3e;
+  color: white;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+<h1>Long Branch Saloon</h1>
+
+<div class="stats">
+  <div class="stat">Balance: $<span id="score">100</span></div>
+  <div class="stat">Bet: <span id="bet">10</span></div>
+</div>
+
+<div class="machine">
+  <div class="slot-screen" id="slotScreen"></div>
+</div>
+
+<div class="message" id="message">Good luck!</div>
+
+<div class="controls">
+  <button id="betDown">-</button>
+  <button id="spin">SPIN</button>
+  <button id="betUp">+</button>
+</div>
+
+<div class="bottom-buttons">
+  <button id="musicToggle">🔊 Music</button>
+  <button id="maxBet">Max Bet</button>
+</div>
+</div>
+
+<audio id="bgMusic" loop preload="auto">
+  <source src="music/ohsusanna.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const symbols = [
+  "images/dillon.png",
+  "images/doc.png",
+  "images/kitty.png",
+  "images/festus.png",
+  "images/chester.png",
+  "images/thad.png",
+  "images/newly.png"
+];
+
+const slotScreen = document.getElementById("slotScreen");
+const scoreEl = document.getElementById("score");
+const betEl = document.getElementById("bet");
+const messageEl = document.getElementById("message");
+
+let score = 100;
+let bet = 10;
+let reels = [];
+let spinning = false;
+
+const music = document.getElementById("bgMusic");
+let started = false;
+
+document.addEventListener("click", () => {
+  if(!started){
+    music.play().catch(()=>{});
+    started = true;
+  }
+}, {once:true});
+
+function randomSymbol(){
+  return symbols[Math.floor(Math.random()*symbols.length)];
+}
+
+function setSymbol(el, src){
+  el.innerHTML = `<img src="${src}" class="slot-img">`;
+}
+
+function buildReels(){
+  slotScreen.innerHTML = "";
+  reels = [];
+
+  for(let i=0;i<3;i++){
+    let reel = document.createElement("div");
+    reel.className = "reel";
+
+    for(let j=0;j<3;j++){
+      let s = document.createElement("div");
+      s.className = "symbol";
+      setSymbol(s, randomSymbol());
+      reel.appendChild(s);
+    }
+
+    slotScreen.appendChild(reel);
+    reels.push(reel);
+  }
+}
+
+function spin(){
+  if(spinning || score < bet) return;
+
+  spinning = true;
+  score -= bet;
+  update();
+
+  reels.forEach((reel, i)=>{
+    let int = setInterval(()=>{
+      reel.querySelectorAll(".symbol").forEach(s=>{
+        setSymbol(s, randomSymbol());
+      });
+    }, 80);
+
+    setTimeout(()=>{
+      clearInterval(int);
+      if(i === 2) finishSpin();
+    }, 800 + i*300);
+  });
+}
+
+function finishSpin(){
+  let mid = reels.map(r => r.children[1].innerHTML);
+  let match = mid.filter(v => v === mid[0]).length;
+
+  if(match === 3){
+    score += bet * 5;
+    messageEl.textContent = "JACKPOT!";
+  } else if(match === 2){
+    score += bet * 2;
+    messageEl.textContent = "Nice!";
+  } else {
+    messageEl.textContent = "Try again!";
+  }
+
+  spinning = false;
+  update();
+}
+
+function update(){
+  scoreEl.textContent = score;
+  betEl.textContent = bet;
+}
+
+document.getElementById("spin").onclick = spin;
+
+document.getElementById("betUp").onclick = ()=>{
+  if(bet < score) bet += 5;
+  update();
+};
+
+document.getElementById("betDown").onclick = ()=>{
+  if(bet > 5) bet -= 5;
+  update();
+};
+
+document.getElementById("maxBet").onclick = ()=>{
+  bet = Math.min(score, 50);
+  update();
+};
+
+document.getElementById("musicToggle").onclick = ()=>{
+  music.muted = !music.muted;
+};
+
+buildReels();
+update();
+</script>
+
+</body>
+</html>
