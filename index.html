@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Western Saloon</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      background: radial-gradient(circle at center, rgba(255,235,190,.18), rgba(0,0,0,.45) 68%),
+        linear-gradient(90deg,#6b5d4b 0 7%,#2f2a24 7% 8%,#8a7356 8% 19%,#211b17 19% 20%,#b5a081 20% 27%,#2a2420 27% 28%,#706553 28% 43%,#1f1a16 43% 44%,#92836c 44% 59%,#29231e 59% 60%,#5b4f41 60% 73%,#1d1814 73% 74%,#a89272 74% 86%,#26201b 86% 87%,#51483d 87% 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      color: #f6deb0;
+    }
+
+    .game {
+      width: min(100%, 460px);
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(#5a3824, #2b170e);
+      border: 5px solid #1b0d08;
+      box-shadow: 0 22px 55px rgba(0,0,0,.75), inset 0 0 0 3px #8b5f39;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      color: #ffe79a;
+      font-size: clamp(2rem, 8vw, 3rem);
+      text-shadow: 0 3px 0 #1b0d08;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .stat, .message, button {
+      background: linear-gradient(#865633, #5d351f);
+      border: 2px solid #2a130a;
+      border-radius: 9px;
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,.2);
+      color: #fff0bd;
+      font-weight: 900;
+      text-shadow: 0 2px 0 #1b0d08;
+    }
+
+    .stat { padding: 10px 4px; font-size: 1.05rem; }
+
+    .machine {
+      padding: 10px;
+      background: linear-gradient(90deg, #1a0d07, #6b4428, #1a0d07);
+      border: 4px solid #170b06;
+      border-radius: 10px;
+    }
+
+    .slot-screen {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 8px;
+      background: #120907;
+      border-radius: 8px;
+    }
+
+    .reel {
+      display: grid;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 6px;
+      height: 210px;
+      padding: 6px;
+      background: linear-gradient(90deg, #130907, #2d1b10, #130907);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .symbol {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60px;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .slot-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+      filter: drop-shadow(0 5px 3px rgba(0,0,0,.65));
+    }
+
+    .reel.spinning .slot-img {
+      animation: spinBounce .09s linear infinite;
+    }
+
+    @keyframes spinBounce {
+      from { transform: translateY(-14px) scale(.95); opacity: .55; }
+      to { transform: translateY(14px) scale(1.05); opacity: 1; }
+    }
+
+    .message {
+      min-height: 44px;
+      margin: 12px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      text-transform: uppercase;
+    }
+
+    .controls, .bottom-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .bottom-buttons {
+      grid-template-columns: repeat(2, 1fr);
+      margin-top: 10px;
+    }
+
+    button {
+      border: 0;
+      padding: 14px 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .spin {
+      background: linear-gradient(#a46c3e, #6b3e25);
+      font-size: 1.15rem;
+    }
+
+    button:active { transform: translateY(2px); }
+    button:disabled { opacity: .5; }
+
+    .note {
+      margin: 12px 0 0;
+      font-family: system-ui, sans-serif;
+      font-size: .78rem;
+      color: #d8bb7b;
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <h1>Long Branch Saloon</h1>
+
+    <section class="stats">
+      <div class="stat">Balance: $<span id="score">100</span></div>
+      <div class="stat">Bet: <span id="bet">10</span></div>
+    </section>
+
+    <section class="machine">
+      <div class="slot-screen" id="slotScreen"></div>
+    </section>
+
+    <div class="message" id="message">Good luck!</div>
+
+    <section class="controls">
+      <button id="betDown" type="button">− Bet</button>
+      <button id="spin" class="spin" type="button">SPIN</button>
+      <button id="betUp" type="button">+ Bet</button>
+    </section>
+
+    <section class="bottom-buttons">
+      <button id="musicToggle" type="button">🔊 Music</button>
+      <button id="maxBet" type="button">Max Bet</button>
+    </section>
+
+    <p class="note">Three matching icons on the middle row wins 5×. Two matching icons wins 2×.</p>
+  </main>
+
+  <audio id="bgMusic" loop preload="auto">
+    <source src="music/Dusty%20Saloon%20Swing.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const symbols = [
+      "images/dillon.png",
+      "images/doc.png",
+      "images/kitty.png",
+      "images/festus.png",
+      "images/chester.png",
+      "images/thad.png",
+      "images/newly.png"
+    ];
+
+    const slotScreen = document.getElementById("slotScreen");
+    const scoreEl = document.getElementById("score");
+    const betEl = document.getElementById("bet");
+    const messageEl = document.getElementById("message");
+    const spinBtn = document.getElementById("spin");
+    const betUpBtn = document.getElementById("betUp");
+    const betDownBtn = document.getElementById("betDown");
+    const maxBetBtn = document.getElementById("maxBet");
+    const musicToggle = document.getElementById("musicToggle");
+    const music = document.getElementById("bgMusic");
+
+    let score = 100;
+    let bet = 10;
+    let spinning = false;
+    let musicStarted = false;
+    let musicMuted = false;
+    const reels = [];
+
+    function randomSymbol() {
+      return symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    function setSymbol(el, src) {
+      el.innerHTML = "";
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = "slot symbol";
+      img.className = "slot-img";
+      el.appendChild(img);
+    }
+
+    function buildReels() {
+      slotScreen.innerHTML = "";
+      reels.length = 0;
+
+      for (let col = 0; col < 3; col++) {
+        const reel = document.createElement("div");
+        reel.className = "reel";
+
+        for (let row = 0; row < 3; row++) {
+          const symbol = document.createElement("div");
+          symbol.className = "symbol";
+          setSymbol(symbol, randomSymbol());
+          reel.appendChild(symbol);
+        }
+
+        slotScreen.appendChild(reel);
+        reels.push(reel);
+      }
+    }
+
+    function updateStats() {
+      scoreEl.textContent = score;
+      betEl.textContent = bet;
+      betDownBtn.disabled = spinning || bet <= 5;
+      betUpBtn.disabled = spinning || bet >= score;
+      maxBetBtn.disabled = spinning;
+      spinBtn.disabled = spinning || score < bet;
+    }
+
+    function startMusic() {
+      if (musicStarted) return;
+      musicStarted = true;
+      music.volume = 0.45;
+      music.play().catch(() => {
+        musicStarted = false;
+        musicToggle.textContent = "▶️ Music";
+      });
+    }
+
+    document.addEventListener("click", startMusic, { once: true });
+    document.addEventListener("touchstart", startMusic, { once: true });
+
+    musicToggle.addEventListener("click", () => {
+      if (!musicStarted) startMusic();
+      musicMuted = !musicMuted;
+      music.muted = musicMuted;
+      musicToggle.textContent = musicMuted ? "🔇 Music" : "🔊 Music";
+    });
+
+    function middleRowResult() {
+      return reels.map(reel => reel.children[1].querySelector("img").src);
+    }
+
+    function biggestMatch(row) {
+      const counts = {};
+      row.forEach(icon => counts[icon] = (counts[icon] || 0) + 1);
+      return Math.max(...Object.values(counts));
+    }
+
+    betDownBtn.addEventListener("click", () => {
+      if (spinning) return;
+      bet = Math.max(5, bet - 5);
+      updateStats();
+    });
+
+    betUpBtn.addEventListener("click", () => {
+      if (spinning) return;
+      bet = Math.min(score, bet + 5);
+      updateStats();
+    });
+
+    maxBetBtn.addEventListener("click", () => {
+      if (spinning) return;
+      bet = Math.min(score, 50);
+      updateStats();
+    });
+
+    spinBtn.addEventListener("click", () => {
+      if (spinning || score < bet) return;
+
+      startMusic();
+      spinning = true;
+      score -= bet;
+      messageEl.textContent = "Spinning...";
+      updateStats();
+
+      const timers = reels.map(reel => {
+        reel.classList.add("spinning");
+        return setInterval(() => {
+          Array.from(reel.children).forEach(child => setSymbol(child, randomSymbol()));
+        }, 80);
+      });
+
+      reels.forEach((reel, index) => {
+        setTimeout(() => {
+          clearInterval(timers[index]);
+          Array.from(reel.children).forEach(child => setSymbol(child, randomSymbol()));
+          reel.classList.remove("spinning");
+
+          if (index === reels.length - 1) finishSpin();
+        }, 750 + index * 350);
+      });
+    });
+
+    function finishSpin() {
+      const matchCount = biggestMatch(middleRowResult());
+      let win = 0;
+
+      if (matchCount === 3) {
+        win = bet * 5;
+        messageEl.textContent = "Jackpot! +" + win;
+      } else if (matchCount === 2) {
+        win = bet * 2;
+        messageEl.textContent = "Nice win! +" + win;
+      } else {
+        messageEl.textContent = "Try again!";
+      }
+
+      score += win;
+
+      if (score < 5) {
+        score = 100;
+        bet = 10;
+        messageEl.textContent = "Fresh start!";
+      }
+
+      spinning = false;
+      updateStats();
+    }
+
+    buildReels();
+    updateStats();
+  </script>
+</body>
+  </html>
