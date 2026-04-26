@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Long Branch Saloon</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: radial-gradient(circle, #3b2a1a, #000);
+  color: #f5deb3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  background: #5a3b24;
+  padding: 20px;
+  border-radius: 20px;
+  text-align: center;
+  width: 320px;
+  box-shadow: 0 0 25px black;
+}
+
+h1 {
+  margin: 10px 0 15px;
+}
+
+.info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.slot-screen {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.reel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.symbol {
+  width: 80px;
+  height: 80px;
+  background: #2b1a0f;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.slot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+button {
+  margin: 5px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #a07142;
+  color: white;
+  font-weight: bold;
+}
+
+.message {
+  height: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Long Branch Saloon</h1>
+
+  <div class="info">
+    <div>Balance: $<span id="score">100</span></div>
+    <div>Bet: <span id="bet">10</span></div>
+  </div>
+
+  <div class="slot-screen" id="slotScreen"></div>
+
+  <div class="message" id="message"></div>
+
+  <button id="betDown">-</button>
+  <button id="spin">SPIN</button>
+  <button id="betUp">+</button>
+
+  <br>
+
+  <button id="musicToggle">🔊 Music</button>
+  <button id="maxBet">Max Bet</button>
+</div>
+
+<audio id="bgMusic" loop>
+  <source src="music/ohsusanna.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const symbols = [
+  "images/dillon.png",
+  "images/doc.png",
+  "images/kitty.png",
+  "images/festus.png",
+  "images/chester.png",
+  "images/thad.png",
+  "images/newly.png"
+];
+
+const slotScreen = document.getElementById("slotScreen");
+const scoreEl = document.getElementById("score");
+const betEl = document.getElementById("bet");
+const messageEl = document.getElementById("message");
+
+let score = 100;
+let bet = 10;
+let reels = [];
+let spinning = false;
+
+const music = document.getElementById("bgMusic");
+let started = false;
+
+document.addEventListener("click", () => {
+  if(!started){
+    music.play().catch(()=>{});
+    started = true;
+  }
+}, {once:true});
+
+function randomSymbol(){
+  return symbols[Math.floor(Math.random()*symbols.length)];
+}
+
+function setSymbol(el, src){
+  el.innerHTML = `<img src="${src}" class="slot-img">`;
+}
+
+function buildReels(){
+  slotScreen.innerHTML = "";
+  reels = [];
+
+  for(let col = 0; col < 3; col++){
+    let reel = document.createElement("div");
+    reel.className = "reel";
+
+    for(let row = 0; row < 3; row++){
+      let s = document.createElement("div");
+      s.className = "symbol";
+      setSymbol(s, randomSymbol());
+      reel.appendChild(s);
+    }
+
+    slotScreen.appendChild(reel);
+    reels.push(reel);
+  }
+}
+
+function makeGrid(){
+  return Array.from({ length: 3 }, () =>
+    Array.from({ length: 3 }, () => randomSymbol())
+  );
+}
+
+function forceWin(grid){
+  const lines = [
+    [[0,0],[0,1],[0,2]],
+    [[1,0],[1,1],[1,2]],
+    [[2,0],[2,1],[2,2]],
+    [[0,0],[1,0],[2,0]],
+    [[0,1],[1,1],[2,1]],
+    [[0,2],[1,2],[2,2]],
+    [[0,0],[1,1],[2,2]],
+    [[2,0],[1,1],[0,2]]
+  ];
+
+  const line = lines[Math.floor(Math.random() * lines.length)];
+  const winner = randomSymbol();
+
+  line.forEach(([r,c]) => grid[r][c] = winner);
+  return grid;
+}
+
+function createSpin(){
+  let grid = makeGrid();
+
+  if(Math.random() < 0.38){
+    grid = forceWin(grid);
+  }
+
+  return grid;
+}
+
+function applyGrid(grid){
+  for(let col=0; col<3; col++){
+    for(let row=0; row<3; row++){
+      setSymbol(reels[col].children[row], grid[row][col]);
+    }
+  }
+}
+
+function getGrid(){
+  const g=[[],[],[]];
+  for(let r=0;r<3;r++){
+    for(let c=0;c<3;c++){
+      g[r][c]=reels[c].children[r].querySelector("img").src;
+    }
+  }
+  return g;
+}
+
+function getWins(grid){
+  const lines = [
+    [[0,0],[0,1],[0,2]],
+    [[1,0],[1,1],[1,2]],
+    [[2,0],[2,1],[2,2]],
+    [[0,0],[1,0],[2,0]],
+    [[0,1],[1,1],[2,1]],
+    [[0,2],[1,2],[2,2]],
+    [[0,0],[1,1],[2,2]],
+    [[2,0],[1,1],[0,2]]
+  ];
+
+  return lines.filter(line=>{
+    const [a,b,c]=line.map(([r,c])=>grid[r][c]);
+    return a===b && b===c;
+  });
+}
+
+function spin(){
+  if(spinning || score < bet) return;
+
+  spinning=true;
+  score -= bet;
+  messageEl.textContent="Spinning...";
+  update();
+
+  const grid=createSpin();
+
+  reels.forEach((reel,i)=>{
+    let int=setInterval(()=>{
+      reel.querySelectorAll(".symbol").forEach(s=>{
+        setSymbol(s, randomSymbol());
+      });
+    },80);
+
+    setTimeout(()=>{
+      clearInterval(int);
+
+      for(let r=0;r<3;r++){
+        setSymbol(reel.children[r], grid[r][i]);
+      }
+
+      if(i===2) finish();
+    },800+i*300);
+  });
+}
+
+function finish(){
+  const grid=getGrid();
+  const wins=getWins(grid);
+
+  if(wins.length){
+    const payout=bet*wins.length*3;
+    score+=payout;
+    messageEl.textContent=`WIN ${wins.length} LINE(S) +$${payout}`;
+  } else {
+    messageEl.textContent="Try again";
+  }
+
+  if(score<=0){
+    score=100;
+    bet=10;
+  }
+
+  spinning=false;
+  update();
+}
+
+function update(){
+  scoreEl.textContent=score;
+  betEl.textContent=bet;
+}
+
+document.getElementById("spin").onclick=spin;
+document.getElementById("betUp").onclick=()=>{ if(bet<score) bet+=5; update(); };
+document.getElementById("betDown").onclick=()=>{ if(bet>5) bet-=5; update(); };
+document.getElementById("maxBet").onclick=()=>{ bet=Math.min(score,50); update(); };
+document.getElementById("musicToggle").onclick=()=>{ music.muted=!music.muted; };
+
+buildReels();
+update();
+</script>
+
+</body>
+</html>
