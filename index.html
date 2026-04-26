@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Long Branch Saloon</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: serif;
+    background: radial-gradient(circle, #3b2a1d, #000);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* MAIN BOX */
+.container {
+    background: #5a321c;
+    padding: 20px;
+    border-radius: 20px;
+    width: 360px;
+    box-shadow: 0 0 30px black;
+    text-align: center;
+}
+
+h1 {
+    color: #f5e3a1;
+    margin-bottom: 10px;
+}
+
+/* INFO */
+.info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.box {
+    background: #7a4b2b;
+    padding: 10px;
+    border-radius: 10px;
+    width: 45%;
+    color: #fff;
+}
+
+.freeGames {
+    background: #3b1e10;
+    padding: 8px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    color: #f5e3a1;
+}
+
+/* REELS AREA */
+.reels {
+    display: flex;
+    justify-content: space-between;
+    background: #2a140a;
+    padding: 10px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* EACH REEL */
+.reel {
+    width: 32%;
+    height: 210px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* SCROLL STRIP */
+.strip {
+    position: absolute;
+    width: 100%;
+    transition: top 0.5s ease-out;
+}
+
+/* SYMBOL IMAGE */
+.symbol {
+    width: 100%;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+/* BUTTONS */
+.controls {
+    margin-top: 10px;
+}
+
+button {
+    width: 30%;
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 10px;
+    background: #a06a3d;
+    color: white;
+    font-weight: bold;
+}
+
+button:disabled {
+    opacity: 0.5;
+}
+
+.message {
+    color: #f5e3a1;
+    margin-top: 5px;
+}
+
+/* VIDEO OVERLAY */
+#bonusVideo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    background: black;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Long Branch Saloon</h1>
+
+<div class="info">
+    <div class="box">Balance: $<span id="balance">100</span></div>
+    <div class="box">Bet: <span id="bet">10</span></div>
+</div>
+
+<div class="freeGames">
+    Free Games: <span id="freeGames">0</span>
+</div>
+
+<div class="reels">
+    <div class="reel"><div class="strip" id="r1"></div></div>
+    <div class="reel"><div class="strip" id="r2"></div></div>
+    <div class="reel"><div class="strip" id="r3"></div></div>
+</div>
+
+<div class="message" id="message">Good luck!</div>
+
+<div class="controls">
+    <button onclick="changeBet(-10)">-</button>
+    <button onclick="spin()">SPIN</button>
+    <button onclick="changeBet(10)">+</button><br>
+    <button onclick="toggleMusic()">Music</button>
+    <button onclick="maxBet()">Max</button>
+    <button onclick="toggleInfo()">Info</button>
+</div>
+
+</div>
+
+<!-- AUDIO -->
+<audio id="bgMusic" loop>
+  <source src="music/music.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="spinSound">
+  <source src="music/spin.mp3" type="audio/mpeg">
+</audio>
+
+<!-- BONUS VIDEO -->
+<video id="bonusVideo" src="videos/intro.mp4"></video>
+
+<script>
+
+/* SYMBOLS */
+const symbols = [
+"images/dillon.png",
+"images/doc.png",
+"images/kitty.png",
+"images/festus.png",
+"images/thad.png",
+"images/newly.png",
+"images/chester.png",
+"images/badge.png"
+];
+
+let balance = 100;
+let bet = 10;
+let freeGames = 0;
+let lockedBet = 0;
+
+/* BUILD REELS */
+function buildReel(id){
+    let reel = document.getElementById(id);
+    reel.innerHTML = "";
+
+    for(let i=0;i<20;i++){
+        let img = document.createElement("img");
+        img.src = symbols[Math.floor(Math.random()*symbols.length)];
+        img.className = "symbol";
+        reel.appendChild(img);
+    }
+}
+
+buildReel("r1");
+buildReel("r2");
+buildReel("r3");
+
+/* SPIN */
+function spin(){
+
+    if(freeGames <= 0 && balance < bet) return;
+
+    document.getElementById("spinSound").volume = 0.3;
+    document.getElementById("spinSound").play();
+
+    if(freeGames <= 0){
+        balance -= bet;
+    }
+
+    updateUI();
+
+    spinReel("r1");
+    setTimeout(()=>spinReel("r2"),200);
+    setTimeout(()=>spinReel("r3"),400);
+
+    setTimeout(checkWin,900);
+}
+
+/* SPIN REEL */
+function spinReel(id){
+    let reel = document.getElementById(id);
+    reel.style.top = "-700px";
+    setTimeout(()=>{
+        reel.style.top = "0px";
+        buildReel(id);
+    },400);
+}
+
+/* CHECK WIN */
+function checkWin(){
+
+    let results = [
+        getMiddle("r1"),
+        getMiddle("r2"),
+        getMiddle("r3")
+    ];
+
+    let badgeCount = results.filter(x=>x.includes("badge")).length;
+
+    if(badgeCount >= 3){
+        triggerBonus();
+        return;
+    }
+
+    if(results[0] === results[1] && results[1] === results[2]){
+        let win = bet * 3;
+        if(results[0].includes("dillon")) win *= 1.15;
+
+        balance += win;
+        document.getElementById("message").innerText = "WIN $" + win;
+    } else {
+        document.getElementById("message").innerText = "Try again!";
+    }
+
+    if(freeGames > 0){
+        freeGames--;
+        if(freeGames > 0){
+            setTimeout(spin,700);
+        }
+    }
+
+    updateUI();
+}
+
+/* GET MIDDLE SYMBOL */
+function getMiddle(id){
+    let reel = document.getElementById(id);
+    return reel.children[3].src;
+}
+
+/* BONUS */
+function triggerBonus(){
+
+    document.getElementById("bgMusic").pause();
+
+    let vid = document.getElementById("bonusVideo");
+    vid.style.display = "block";
+    vid.play();
+
+    vid.onended = () => {
+        vid.style.display = "none";
+
+        freeGames = 10;
+        lockedBet = bet;
+
+        document.getElementById("bgMusic").play();
+
+        spin();
+    }
+}
+
+/* BET */
+function changeBet(amount){
+    if(freeGames > 0) return;
+    bet += amount;
+    if(bet < 10) bet = 10;
+    if(bet > 500) bet = 500;
+    updateUI();
+}
+
+function maxBet(){
+    if(freeGames > 0) return;
+    bet = 500;
+    updateUI();
+}
+
+/* MUSIC */
+function toggleMusic(){
+    let m = document.getElementById("bgMusic");
+    if(m.paused) m.play();
+    else m.pause();
+}
+
+/* INFO */
+function toggleInfo(){
+    alert("3 badge = BONUS\n10 Free Spins\nDillon pays 15% more");
+}
+
+/* UI */
+function updateUI(){
+    document.getElementById("balance").innerText = balance;
+    document.getElementById("bet").innerText = bet;
+    document.getElementById("freeGames").innerText = freeGames;
+}
+
+</script>
+
+</body>
+</html>
