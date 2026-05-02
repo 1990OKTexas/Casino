@@ -963,7 +963,7 @@ function update(){
   const betLocked=autoFreeSpins||bonusPlaying||lockedBonusBet!==null||videoPlaying;
 
   betDownBtn.disabled=spinning||betLocked||bet<=5;
-  betUpBtn.disabled=spinning||betLocked||bet>=score||bet>=500;
+  betUpBtn.disabled=spinning||betLocked||bet>=score||bet>=2000;
   spinBtn.disabled=spinning||bonusPlaying||videoPlaying||autoSpin||(freeSpins<=0&&score<bet);
   maxBetBtn.disabled=spinning||betLocked;
   autoSpinBtn.textContent=autoSpin?"Stop Auto":"Auto";
@@ -982,7 +982,7 @@ autoSpinBtn.addEventListener("click",()=>{
 });
 
 betUpBtn.addEventListener("click",()=>{
-  if(!spinning&&!bonusPlaying&&!autoFreeSpins&&lockedBonusBet===null&&bet<score&&bet<500&&!videoPlaying){
+  if(!spinning&&!bonusPlaying&&!autoFreeSpins&&lockedBonusBet===null&&bet<score&&bet<2000&&!videoPlaying){
     bet+=5;
   }
   update();
@@ -997,7 +997,7 @@ betDownBtn.addEventListener("click",()=>{
 
 maxBetBtn.addEventListener("click",()=>{
   if(!spinning&&!bonusPlaying&&!autoFreeSpins&&lockedBonusBet===null&&!videoPlaying){
-    bet=Math.min(score,500);
+    bet=Math.min(score,2000);
   }
   update();
 });
