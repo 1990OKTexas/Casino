@@ -434,11 +434,11 @@ const spinSound=document.getElementById("spinSound");
 const winSound=document.getElementById("winSound");
 
   const ADMIN_PASSWORD="admin123";
-let adminMaxBetValue=dminMaxBetValue0;
+let adminMaxBetValue = 2000;
 
 const adminBtn=document.getElementById("adminBtn");
 const adminModal=document.getElementById("adminModal");
-const adminLoginBtn=document.getElementById("adminLoginBtn");
+const adminLoginBtn=document.getElementById("adminLoginBtn");F
 const adminPass=document.getElementById("adminPass");
 const adminTools=document.getElementById("adminTools");
 
@@ -1045,7 +1045,7 @@ function update(){
   const betLocked=autoFreeSpins||bonusPlaying||lockedBonusBet!==null||videoPlaying;
 
   betDownBtn.disabled=spinning||betLocked||bet<=5;
-  betUpBtn.disabled=spinning||betLocked||bet>=score||bet>=20adminMaxBetValue00;
+  betUpBtn.disabled=spinning||betLocked||bet>=score||bet>=adminMaxBetValue00;
   spinBtn.disabled=spinning||bonusPlaying||videoPlaying||autoSpin||(freeSpins<=0&&score<bet);
   maxBetBtn.disabled=spinning||betLocked;
   autoSpinBtn.textContent=autoSpin?"Stop Auto":"Auto";
