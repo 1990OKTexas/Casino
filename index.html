@@ -432,6 +432,28 @@ const music=document.getElementById("bgMusic");
 const spinSound=document.getElementById("spinSound");
 const winSound=document.getElementById("winSound");
 
+  const ADMIN_PASSWORD="admin123";
+let adminMaxBetValue=dminMaxBetValue0;
+
+const adminBtn=document.getElementById("adminBtn");
+const adminModal=document.getElementById("adminModal");
+const adminLoginBtn=document.getElementById("adminLoginBtn");
+const adminPass=document.getElementById("adminPass");
+const adminTools=document.getElementById("adminTools");
+
+const addMoneyBtn=document.getElementById("addMoneyBtn");
+const subMoneyBtn=document.getElementById("subMoneyBtn");
+const resetMoneyBtn=document.getElementById("resetMoneyBtn");
+const clearSaveBtn=document.getElementById("clearSaveBtn");
+
+const forceBonusBtn=document.getElementById("forceBonusBtn");
+const forceKittyBtn=document.getElementById("forceKittyBtn");
+const forceLogoBtn=document.getElementById("forceLogoBtn");
+
+const adminMaxBet=document.getElementById("adminMaxBet");
+const applyAdminSettings=document.getElementById("applyAdminSettings");
+const closeAdminBtn=document.getElementById("closeAdminBtn");
+
 let savedScore=parseInt(localStorage.getItem(SAVE_KEY),10);
 let score=Number.isFinite(savedScore)&&savedScore>=5?savedScore:100;
 let bet=10;
@@ -1022,7 +1044,7 @@ function update(){
   const betLocked=autoFreeSpins||bonusPlaying||lockedBonusBet!==null||videoPlaying;
 
   betDownBtn.disabled=spinning||betLocked||bet<=5;
-  betUpBtn.disabled=spinning||betLocked||bet>=score||bet>=2000;
+  betUpBtn.disabled=spinning||betLocked||bet>=score||bet>=20adminMaxBetValue00;
   spinBtn.disabled=spinning||bonusPlaying||videoPlaying||autoSpin||(freeSpins<=0&&score<bet);
   maxBetBtn.disabled=spinning||betLocked;
   autoSpinBtn.textContent=autoSpin?"Stop Auto":"Auto";
@@ -1041,7 +1063,7 @@ autoSpinBtn.addEventListener("click",()=>{
 });
 
 betUpBtn.addEventListener("click",()=>{
-  if(!spinning&&!bonusPlaying&&!autoFreeSpins&&lockedBonusBet===null&&bet<score&&bet<2000&&!videoPlaying){
+  if(!spinning&&!bonusPlaying&&!autoFreeSpins&&lockedBonusBet===null&&bet<score&&bet<adminMaxBetValue&&!videoPlaying){
     bet+=5;
   }
   update();
@@ -1056,7 +1078,7 @@ betDownBtn.addEventListener("click",()=>{
 
 maxBetBtn.addEventListener("click",()=>{
   if(!spinning&&!bonusPlaying&&!autoFreeSpins&&lockedBonusBet===null&&!videoPlaying){
-    bet=Math.min(score,2000);
+    bet=Math.min(score,adminMaxBetValue);
   }
   update();
 });
@@ -1082,6 +1104,60 @@ closeInfoBtn.addEventListener("click",()=>{
   payModal.style.display="none";
 });
 
+adminBtn.onclick=()=>adminModal.style.display="block";
+
+closeAdminBtn.onclick=()=>adminModal.style.display="none";
+
+adminLoginBtn.onclick=()=>{
+  if(adminPass.value===ADMIN_PASSWORD){
+    adminTools.style.display="block";
+  }else{
+    alert("Wrong password");
+  }
+};
+
+addMoneyBtn.onclick=()=>{
+  score+=1000;
+  saveScore();
+  update();
+};
+
+subMoneyBtn.onclick=()=>{
+  score=Math.max(0,score-1000);
+  saveScore();
+  update();
+};
+
+resetMoneyBtn.onclick=()=>{
+  score=100;
+  saveScore();
+  update();
+};
+
+clearSaveBtn.onclick=()=>{
+  localStorage.clear();
+  location.reload();
+};
+
+forceBonusBtn.onclick=()=>{
+  freeSpins=10;
+  autoFreeSpins=true;
+  update();
+};
+
+forceKittyBtn.onclick=()=>{
+  playKittyVideo();
+};
+
+forceLogoBtn.onclick=()=>{
+  playGunsmokeLogo();
+};
+
+applyAdminSettings.onclick=()=>{
+  adminMaxBetValue=parseInt(adminMaxBet.value)||2000;
+  update();
+};
+  
 buildReels();
 saveScore();
 update();
