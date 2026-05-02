@@ -712,12 +712,28 @@ function addBonusWin(amount){
   animateBonusWon();
 }
 
+function addBonusWin(amount){
+  bonusTotalWon+=amount;
+  animateBonusWon();
+}
+
 function awardWin(amount){
   if(autoFreeSpins){
     addBonusWin(amount);
   }else{
     score+=amount;
   }
+}
+
+function completeBonus(){
+  score+=bonusTotalWon;
+  saveScore();
+
+  autoFreeSpins=false;
+  lockedBonusBet=null;
+  messageEl.textContent=`Bonus complete! Won $${bonusTotalWon}`;
+
+  update();
 }
 
 function animateBonusWon(){
@@ -872,10 +888,9 @@ function finishSpin(){
   }
 
   if(autoFreeSpins&&freeSpins<=0){
-    autoFreeSpins=false;
-    lockedBonusBet=null;
-    messageEl.textContent=`Bonus complete! Won $${bonusTotalWon}`;
-  }
+  completeBonus();
+  return;
+}
 
   if(score<5&&freeSpins<=0){
     score=100;
@@ -982,12 +997,7 @@ function finishKittyVideo(){
     }
 
 if(autoFreeSpins&&freeSpins<=0){
-  score+=bonusTotalWon;
-  autoFreeSpins=false;
-  lockedBonusBet=null;
-  messageEl.textContent=`Bonus complete! Won $${bonusTotalWon}`;
-  saveScore();
-  update();
+  completeBonus();
   return;
 }
 
