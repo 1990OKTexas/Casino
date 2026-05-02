@@ -24,6 +24,8 @@ body{
   width:95%;
   max-width:420px;
   cursor:pointer;
+  position:relative;
+  z-index:9999;
 }
 
 #disclaimerImg{
@@ -31,12 +33,14 @@ body{
   display:block;
   border-radius:18px;
   box-shadow:0 20px 50px rgba(0,0,0,.7);
+  pointer-events:auto;
 }
 
 #disclaimerScreen,
 #disclaimerImg{
   touch-action:manipulation;
   user-select:none;
+  -webkit-user-select:none;
 }
 
 .game{
@@ -449,9 +453,13 @@ function enterGame(){
   gameStarted=true;
 }
 
-disclaimerScreen.addEventListener("click",enterGame);
-disclaimerScreen.addEventListener("touchstart",enterGame);
-disclaimerScreen.addEventListener("pointerdown",enterGame);
+disclaimerScreen.onclick = enterGame;
+document.getElementById("disclaimerImg").onclick = enterGame;
+
+disclaimerScreen.addEventListener("touchend", function(e){
+  e.preventDefault();
+  enterGame();
+}, {passive:false});
 
 function saveScore(){localStorage.setItem(SAVE_KEY,String(score));}
 
