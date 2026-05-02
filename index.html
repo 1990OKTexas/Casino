@@ -708,9 +708,15 @@ function spinGame(){
 }
 
 function addBonusWin(amount){
+  bonusTotalWon+=amount;
+  animateBonusWon();
+}
+
+function awardWin(amount){
   if(autoFreeSpins){
-    bonusTotalWon+=amount;
-    animateBonusWon();
+    addBonusWin(amount);
+  }else{
+    score+=amount;
   }
 }
 
@@ -767,10 +773,9 @@ function finishSpin(){
 
   const wonSomething=totalWin>0||regularBonusTriggered||freeSpinRetrigger||hasKittyFeature||hasGunsmokeLogoFeature;
 
-  if(totalWin>0){
-    score+=totalWin;
-    addBonusWin(totalWin);
-  }
+ if(totalWin>0){
+  awardWin(totalWin);
+}
 
   if(regularBonusTriggered||freeSpinRetrigger)highlightBadges();
 
@@ -951,8 +956,7 @@ function finishKittyVideo(){
     highlightAllKitty();
 
     const kittyWin=Math.round(bet*25);
-    score+=kittyWin;
-    addBonusWin(kittyWin);
+    awardWin(kittyWin);
 
     winSound.volume=.8;
     winSound.currentTime=0;
@@ -977,13 +981,15 @@ function finishKittyVideo(){
       return;
     }
 
-    if(autoFreeSpins&&freeSpins<=0){
-      autoFreeSpins=false;
-      lockedBonusBet=null;
-      messageEl.textContent=`Bonus complete! Won $${bonusTotalWon}`;
-      update();
-      return;
-    }
+if(autoFreeSpins&&freeSpins<=0){
+  score+=bonusTotalWon;
+  autoFreeSpins=false;
+  lockedBonusBet=null;
+  messageEl.textContent=`Bonus complete! Won $${bonusTotalWon}`;
+  saveScore();
+  update();
+  return;
+}
 
     if(autoSpin&&score>=bet){
       setTimeout(spinGame,WIN_DELAY);
