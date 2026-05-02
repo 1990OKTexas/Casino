@@ -33,6 +33,12 @@ body{
   box-shadow:0 20px 50px rgba(0,0,0,.7);
 }
 
+#disclaimerScreen,
+#disclaimerImg{
+  touch-action:manipulation;
+  user-select:none;
+}
+
 .game{
   display:none;
   width:95%;
@@ -437,11 +443,15 @@ let gunsmokeLogoFeature=false;
 let gunsmokeLogoPlaying=false;
 let gameStarted=false;
 
-disclaimerScreen.addEventListener("click",()=>{
+function enterGame(){
   disclaimerScreen.style.display="none";
   gameEl.style.display="block";
   gameStarted=true;
-});
+}
+
+disclaimerScreen.addEventListener("click",enterGame);
+disclaimerScreen.addEventListener("touchstart",enterGame);
+disclaimerScreen.addEventListener("pointerdown",enterGame);
 
 function saveScore(){localStorage.setItem(SAVE_KEY,String(score));}
 
