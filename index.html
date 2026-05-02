@@ -470,7 +470,7 @@ let adminMaxBetValue = 2000;
 
 const adminBtn=document.getElementById("adminBtn");
 const adminModal=document.getElementById("adminModal");
-const adminLoginBtn=document.getElementById("adminLoginBtn");F
+const adminLoginBtn=document.getElementById("adminLoginBtn");
 const adminPass=document.getElementById("adminPass");
 const adminTools=document.getElementById("adminTools");
 
@@ -1077,7 +1077,7 @@ function update(){
   const betLocked=autoFreeSpins||bonusPlaying||lockedBonusBet!==null||videoPlaying;
 
   betDownBtn.disabled=spinning||betLocked||bet<=5;
-  betUpBtn.disabled=spinning||betLocked||bet>=score||bet>=adminMaxBetValue00;
+  betUpBtn.disabled=spinning||betLocked||bet>=score||bet>=adminMaxBetValue;
   spinBtn.disabled=spinning||bonusPlaying||videoPlaying||autoSpin||(freeSpins<=0&&score<bet);
   maxBetBtn.disabled=spinning||betLocked;
   autoSpinBtn.textContent=autoSpin?"Stop Auto":"Auto";
